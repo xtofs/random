@@ -3,23 +3,19 @@ using System.Collections.Generic;
 
 namespace console
 {
-    internal interface IBoundedGenerator<TRandom, T> where TRandom : IRandom
-    {
-        TRandom Generate(T lower, T upper, out T value);
-    }
 
-    internal interface IUnboundedGenerator<TRandom, T> where TRandom : IRandom
+    internal interface IGenerator<TRandom, T> where TRandom : IRandom
     {
         TRandom Generate(out T value);
     }
 
     public class BetterRandom : IRandom,
-        IBoundedGenerator<BetterRandom, int>,
-        IBoundedGenerator<BetterRandom, uint>,
-        IBoundedGenerator<BetterRandom, double>,
-        IUnboundedGenerator<BetterRandom, bool>
+        IGenerator<BetterRandom, int>,
+        IGenerator<BetterRandom, uint>,
+        IGenerator<BetterRandom, double>,
+        IGenerator<BetterRandom, bool>
     {
-        #region custom RNG implementation
+        #region custom RNG implementation WELL512a
 
         // http://www.iro.umontreal.ca/~panneton/well/WELL512a.c
         const int R = 16;
@@ -74,23 +70,15 @@ namespace console
         #endregion
 
         #region IRandom
-        public bool CanGenerate<T>(bool bounded)
+        public bool CanGenerate<T>()
         {
-            return bounded ? this is IUnboundedGenerator<BetterRandom, T> : this is IBoundedGenerator<BetterRandom, T>;
+            return this is IGenerator<BetterRandom, T>;
         }
 
         public IRandom Next<T>(out T value)
         {
-            if (this is IUnboundedGenerator<BetterRandom, T> generator)
+            if (this is IGenerator<BetterRandom, T> generator)
                 return generator.Generate(out value);
-
-            throw new NotImplementedException();
-        }
-
-        public IRandom Next<T>(T lower, T upper, out T value)
-        {
-            if (this is IBoundedGenerator<BetterRandom, T> generator)
-                return generator.Generate(lower, upper, out value);
 
             throw new NotImplementedException();
         }
@@ -99,25 +87,24 @@ namespace console
 
         #region I...Generators
 
-        public BetterRandom Generate(uint lower, uint upper, out uint value)
+        public BetterRandom Generate(out uint value)
         {
             var (n, next) = this.NextUInt32();
-            value = (n % (upper - lower)) + lower;
+            value = n;
             return next;
         }
 
-        public BetterRandom Generate(int lower, int upper, out int value)
+        public BetterRandom Generate(out int value)
         {
-            var next = ((IBoundedGenerator<BetterRandom, uint>)this).Generate((uint)lower, (uint)upper, out var u);
-            value = (int)u;
+            var next = ((IGenerator<BetterRandom, uint>)this).Generate(out var u);
+            value = (int)(u % 0x7FFFFFFF);
             return next;
         }
 
-        public BetterRandom Generate(double lower, double upper, out double value)
+        public BetterRandom Generate(out double value)
         {
             var (n, next) = NextUInt32();
             value = ((double)n) * FACT;
-            value = value * (upper - lower) + lower;
             return next;
         }
 

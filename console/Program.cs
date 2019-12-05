@@ -2,11 +2,27 @@
 {
     public interface IRandom
     {
-        bool CanGenerate<T>(bool bounded);
+        bool CanGenerate<T>();
         IRandom Next<T>(out T value);
-        IRandom Next<T>(T lower, T upper, out T value);
     }
 
+    public static class RandomExtensions
+    {
+
+        public static IRandom Next(this IRandom rand, int lower, int upper, out int value)
+        {
+            var r = rand.Next<int>(out value);
+            value = value % (upper - lower) + lower;
+            return r;
+        }
+
+        public static IRandom Next(this IRandom rand, double lower, double upper, out double value)
+        {
+            var r = rand.Next<double>(out value);
+            value = value * (upper - lower) + lower;
+            return r;
+        }
+    }
 
     class Program
     {
@@ -18,12 +34,12 @@
                 random = random.Next<bool>(out var b);
                 if (b)
                 {
-                    random = random.Next<int>(0, 100, out var n);
+                    random = random.Next(0, 100, out var n);
                     System.Console.WriteLine(n);
                 }
                 else
                 {
-                    random = random.Next<double>(0.0, 1.0, out var d);
+                    random = random.Next<double>(out var d);
                     System.Console.WriteLine(d);
                 }
             }
