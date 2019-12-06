@@ -1,7 +1,7 @@
 namespace console
 {
-    internal interface IBoundedGenerator<TRandom, T> where TRandom : IRandom
+    internal interface IBoundedGenerator<T>
     {
-        TRandom Generate(T lower, T upper, out T value);
+        IRandom Generate(T lower, T upper, out T value);
     }
 }

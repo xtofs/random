@@ -1,7 +1,7 @@
 namespace console
 {
-    internal interface IUnboundedGenerator<TRandom, T> where TRandom : IRandom
+    internal interface IUnboundedGenerator<T>
     {
-        TRandom Generate(out T value);
+        IRandom Generate(out T value);
     }
 }
