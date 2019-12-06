@@ -3,21 +3,12 @@ using System.Collections.Generic;
 
 namespace console
 {
-    internal interface IBoundedGenerator<TRandom, T> where TRandom : IRandom
-    {
-        TRandom Generate(T lower, T upper, out T value);
-    }
 
-    internal interface IUnboundedGenerator<TRandom, T> where TRandom : IRandom
-    {
-        TRandom Generate(out T value);
-    }
-
-    public class BetterRandom : IRandom,
-        IBoundedGenerator<BetterRandom, int>,
-        IBoundedGenerator<BetterRandom, uint>,
-        IBoundedGenerator<BetterRandom, double>,
-        IUnboundedGenerator<BetterRandom, bool>
+    public class WELL512Random : IRandom,
+        IBoundedGenerator<WELL512Random, int>,
+        IBoundedGenerator<WELL512Random, uint>,
+        IBoundedGenerator<WELL512Random, double>,
+        IUnboundedGenerator<WELL512Random, bool>
     {
         #region custom RNG implementation
 
@@ -44,9 +35,9 @@ namespace console
         private readonly uint index;
         private readonly uint[] state;
 
-        public BetterRandom() : this(0, new uint[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) { }
+        public WELL512Random() : this(0, new uint[] { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15 }) { }
 
-        private BetterRandom(uint i, uint[] init)
+        private WELL512Random(uint i, uint[] init)
         {
             index = i;
             state = new uint[R];
@@ -56,7 +47,7 @@ namespace console
             }
         }
 
-        private (uint, BetterRandom) NextUInt32()
+        private (uint, WELL512Random) NextUInt32()
         {
             var z0 = state[(index + 15) & 0x0000000fU];
             var z1 = MAT0NEG(-16, V0) ^ MAT0NEG(-15, VM1);
@@ -69,19 +60,19 @@ namespace console
             copy[index] = z1 ^ z2;
             copy[(index + 15) & 0x0000000fU] = MAT0NEG(-2, z0) ^ MAT0NEG(-18, z1) ^ MAT3NEG(-28, z2) ^ MAT4NEG(-5, 0xda442d24U, copy[index]);
             var copy_i = (index + 15) & 0x0000000fU;
-            return (copy[index], new BetterRandom(copy_i, copy));
+            return (copy[index], new WELL512Random(copy_i, copy));
         }
         #endregion
 
         #region IRandom
         public bool CanGenerate<T>(bool bounded)
         {
-            return bounded ? this is IUnboundedGenerator<BetterRandom, T> : this is IBoundedGenerator<BetterRandom, T>;
+            return bounded ? this is IUnboundedGenerator<WELL512Random, T> : this is IBoundedGenerator<WELL512Random, T>;
         }
 
         public IRandom Next<T>(out T value)
         {
-            if (this is IUnboundedGenerator<BetterRandom, T> generator)
+            if (this is IUnboundedGenerator<WELL512Random, T> generator)
                 return generator.Generate(out value);
 
             throw new NotImplementedException();
@@ -89,7 +80,7 @@ namespace console
 
         public IRandom Next<T>(T lower, T upper, out T value)
         {
-            if (this is IBoundedGenerator<BetterRandom, T> generator)
+            if (this is IBoundedGenerator<WELL512Random, T> generator)
                 return generator.Generate(lower, upper, out value);
 
             throw new NotImplementedException();
@@ -99,21 +90,21 @@ namespace console
 
         #region I...Generators
 
-        public BetterRandom Generate(uint lower, uint upper, out uint value)
+        public WELL512Random Generate(uint lower, uint upper, out uint value)
         {
             var (n, next) = this.NextUInt32();
             value = (n % (upper - lower)) + lower;
             return next;
         }
 
-        public BetterRandom Generate(int lower, int upper, out int value)
+        public WELL512Random Generate(int lower, int upper, out int value)
         {
-            var next = ((IBoundedGenerator<BetterRandom, uint>)this).Generate((uint)lower, (uint)upper, out var u);
+            var next = ((IBoundedGenerator<WELL512Random, uint>)this).Generate((uint)lower, (uint)upper, out var u);
             value = (int)u;
             return next;
         }
 
-        public BetterRandom Generate(double lower, double upper, out double value)
+        public WELL512Random Generate(double lower, double upper, out double value)
         {
             var (n, next) = NextUInt32();
             value = ((double)n) * FACT;
@@ -121,7 +112,7 @@ namespace console
             return next;
         }
 
-        public BetterRandom Generate(out bool value)
+        public WELL512Random Generate(out bool value)
         {
             var (n, next) = this.NextUInt32();
             value = (n & 1) == 0;

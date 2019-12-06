@@ -1,18 +1,12 @@
 ﻿namespace console
 {
-    public interface IRandom
-    {
-        bool CanGenerate<T>(bool bounded);
-        IRandom Next<T>(out T value);
-        IRandom Next<T>(T lower, T upper, out T value);
-    }
 
 
     class Program
     {
         static void Main(string[] args)
         {
-            IRandom random = new BetterRandom();
+            IRandom random = new WELL512Random();
             for (int i = 0; i < 100; i++)
             {
                 random = random.Next<bool>(out var b);
